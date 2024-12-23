@@ -21,7 +21,3 @@ def chunking_gita():
     }
         )
     return chunks
-
-chunkes_gita = chunking_gita()
-
-print(chunkes_gita)
