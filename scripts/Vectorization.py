@@ -15,8 +15,12 @@ def CreateVectorDB():
     print("Done with chunking")
 
     # Step 2: Prepare Text for Embedding
+    # texts_to_embed = [
+    #     chunk['content']['sanskrit'] + " " + " ".join(chunk['content']['translations'].values())
+    #     for chunk in chunks
+    # ]
     texts_to_embed = [
-        chunk['content']['sanskrit'] + " " + " ".join(chunk['content']['translations'].values())
+        " ".join(chunk['content']['translations'].values())
         for chunk in chunks
     ]
 
@@ -30,7 +34,7 @@ def CreateVectorDB():
     faiss_index.add(embeddings)
 
     # Save metadata (IDs, speaker info) alongside the FAISS index
-    chunk_metadata = [{'id': chunk['id'], 'speaker': chunk['content']['speaker']} for chunk in chunks]
+    chunk_metadata = [{'id': chunk['id'], 'speaker': chunk['content']['speaker'], 'shloka':chunk['content']['sanskrit']} for chunk in chunks]
     np.save(f"{helperPath}/metadata.npy", chunk_metadata)
     faiss.write_index(faiss_index, f"{helperPath}/hybrid_gita.index")
 
@@ -41,7 +45,7 @@ def CreateVectorDB():
     documents = [
         Document(
             page_content=text,
-            metadata={'id': chunk['id'], 'speaker': chunk['content']['speaker']}
+            metadata={'id': chunk['id'], 'speaker': chunk['content']['speaker'], 'shloka':chunk['content']['sanskrit']}
         )
         for chunk, text in zip(chunks, texts_to_embed)
     ]
