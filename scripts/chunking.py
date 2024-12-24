@@ -1,5 +1,5 @@
 import pandas as pd
-data = pd.read_csv('../data/processed/gita_processed1.csv')
+data = pd.read_csv('../data/processed/gita_processed2.csv')
 
 def chunking_gita():
     chunks = []
