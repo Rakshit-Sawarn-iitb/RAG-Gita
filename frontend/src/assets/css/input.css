@@ -1,0 +1,27 @@
+.chat-input-container {
+  z-index: 1000; /* Ensures it stays above other elements */
+  background-color: "#f8f9fa";
+  width: 100%;
+  align-items: center;
+}
+
+.chat-input-container form {
+  max-width: 100%; /* Ensures it doesn’t overflow */
+}
+
+.chat-input-container input:focus {
+  border-color: #007bff; /* Blue border on focus */
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.chat-input-container button:hover {
+  background-color: #0056b3;
+  transition: 0.3s ease;
+}
+@media screen and (min-width: 900px) {
+  .chat-input-container {
+    left: 16.875rem;
+    width: calc(98.5% - 16.875rem)
+  }
+  
+}
