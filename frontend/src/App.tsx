@@ -1,14 +1,13 @@
 import ResponsiveAppBar from "./components/shared/navbar";
 import './App.css';
-import ResponsiveInputField from "./components/shared/input";
-import ChatBubble from "./components/shared/bot";
+import ChatPage from "./components/Home/chatpage";
+import InputField from "./components/shared/input";
 function App() {
   return (
     <>
       <ResponsiveAppBar />
-      <ResponsiveInputField />
-      <ChatBubble message="Hello, I am a bot!" isUser={false}/>
-      <ChatBubble message="Hello, I am a bot!" isUser={true}/>
+      <ChatPage />
+      <InputField />
     </>
   );
 }

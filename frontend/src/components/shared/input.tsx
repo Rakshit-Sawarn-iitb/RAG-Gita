@@ -1,17 +1,51 @@
 import React, { useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import TextareaAutosize from "react-textarea-autosize";
+import { useDispatch } from "react-redux";
+import { v4 as uuidv4 } from "uuid";
+import { addMessage } from "../../redux/slices/chatSlice";
+import { API } from "../../services/api";
+import toast from "./toast";
 import "../../assets/css/input.css";
 
-const ChatGPTInputField: React.FC = () => {
+const InputField: React.FC = () => {
   const [inputValue, setInputValue] = useState("");
+  const dispatch = useDispatch();
 
   const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputValue(event.target.value);
   };
 
-  const handleSubmit = () => {
-    alert(`Input Value: ${inputValue}`);
+  const handleGyanRequest = async () => {
+    if (!inputValue.trim()) return;
+
+    // Add user message to Redux
+    dispatch(
+      addMessage({
+        id: uuidv4(),
+        sender: "user",
+        message: inputValue,
+      })
+    );
+
+    try {
+      const response = await API.question({ query: inputValue });
+
+      // Add bot response to Redux
+      dispatch(
+        addMessage({
+          id: uuidv4(),
+          sender: "bot",
+          message: response.response,
+        })
+      );
+
+      toast({ content: "Response Fetched", status: "success" });
+    } catch (error) {
+      toast({ content: { message: "An error occurred" }, status: "error" });
+    } finally {
+      setInputValue(""); // Clear input field
+    }
   };
 
   return (
@@ -27,7 +61,7 @@ const ChatGPTInputField: React.FC = () => {
       <Form className="d-flex">
         <TextareaAutosize
           minRows={1}
-          maxRows={5} // Adjust the maximum height before scrolling
+          maxRows={5}
           placeholder="Type your message here..."
           value={inputValue}
           onChange={handleInputChange}
@@ -39,25 +73,25 @@ const ChatGPTInputField: React.FC = () => {
             border: "1px solid #ced4da",
             outline: "none",
             overflowY: "auto",
-            resize: "none", // Prevent manual resizing
+            resize: "none",
           }}
         />
       </Form>
       <Button
-          variant="primary"
-          onClick={handleSubmit}
-          className="mt-2"
-          style={{
-            marginLeft: "1rem",
-            borderRadius: "20px",
-            padding: "0.75rem 1.5rem",
-            fontSize: "1rem",
-          }}
-        >
-          Send
-        </Button>
+        variant="primary"
+        onClick={handleGyanRequest}
+        className="mt-2"
+        style={{
+          marginLeft: "1rem",
+          borderRadius: "20px",
+          padding: "0.75rem 1.5rem",
+          fontSize: "1rem",
+        }}
+      >
+        Send
+      </Button>
     </div>
   );
 };
 
-export default ChatGPTInputField;
+export default InputField;
