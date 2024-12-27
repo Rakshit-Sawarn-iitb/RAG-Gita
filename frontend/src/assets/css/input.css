@@ -3,10 +3,12 @@
   background-color: "#f8f9fa";
   width: 100%;
   align-items: center;
+  border-radius: 1.5rem;
 }
 
 .chat-input-container form {
-  max-width: 100%; /* Ensures it doesn’t overflow */
+  max-width: 100%;
+  border-radius: 1.5rem; /* Ensures it doesn’t overflow */
 }
 
 .chat-input-container input:focus {
@@ -20,7 +22,7 @@
 }
 @media screen and (min-width: 900px) {
   .chat-input-container {
-    left: 16.875rem;
+    left: calc((1.5% + 16.875rem)/2);
     width: calc(98.5% - 16.875rem)
   }
   
