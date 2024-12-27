@@ -1,6 +1,7 @@
 @media screen and (min-width: 900px) {
-  .bot {
-    left: 15.875rem;
-    position: relative;
+  .chat-page {
+    position: fixed;
+    left: calc((1.5% + 20rem)/2);
+    width: calc(98.5% - 20rem)
   }
 }

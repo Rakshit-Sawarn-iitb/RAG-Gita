@@ -12,8 +12,6 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser }) => {
     <div
       className={`d-flex ${
         isUser ? "justify-content-end" : "justify-content-start"
-      } ${
-        isUser ? "user" : "bot"
       } my-2`}
     >
       <Card
@@ -25,8 +23,6 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser }) => {
           borderRadius: "1rem",
           borderTopRightRadius: isUser ? "0" : "1rem",
           borderTopLeftRadius: isUser ? "1rem" : "0",
-          marginRight: isUser ? "0.3rem" : "0",
-          marginLeft: isUser ? "0" : "0.3rem",
         }}
       >
         <Card.Text style={{ margin: 0 }}>{message}</Card.Text>

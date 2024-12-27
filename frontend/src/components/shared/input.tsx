@@ -18,20 +18,22 @@ const InputField: React.FC = () => {
 
   const handleGyanRequest = async () => {
     if (!inputValue.trim()) return;
+    const question = inputValue;
+    setInputValue("");
 
-    // Add user message to Redux
+    // Dispatch user's message
     dispatch(
       addMessage({
         id: uuidv4(),
         sender: "user",
-        message: inputValue,
+        message: question,
       })
     );
 
     try {
-      const response = await API.question({ query: inputValue });
+      const response = await API.question({ query: question });
 
-      // Add bot response to Redux
+      // Dispatch bot's response
       dispatch(
         addMessage({
           id: uuidv4(),
@@ -43,8 +45,13 @@ const InputField: React.FC = () => {
       toast({ content: "Response Fetched", status: "success" });
     } catch (error) {
       toast({ content: { message: "An error occurred" }, status: "error" });
-    } finally {
-      setInputValue(""); // Clear input field
+    } 
+  };
+
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      handleGyanRequest();
     }
   };
 
@@ -63,8 +70,9 @@ const InputField: React.FC = () => {
           minRows={1}
           maxRows={5}
           placeholder="Type your message here..."
-          value={inputValue}
+          value={inputValue} // Input value bound to state
           onChange={handleInputChange}
+          onKeyDown={handleKeyPress} // Handle Enter key
           className="flex-grow-1"
           style={{
             borderRadius: "20px",
@@ -80,10 +88,11 @@ const InputField: React.FC = () => {
       <Button
         variant="primary"
         onClick={handleGyanRequest}
+        disabled={!inputValue.trim()} // Disable button if input is empty
         className="mt-2"
         style={{
           marginLeft: "1rem",
-          borderRadius: "20px",
+          borderRadius: "1.5rem",
           padding: "0.75rem 1.5rem",
           fontSize: "1rem",
         }}
