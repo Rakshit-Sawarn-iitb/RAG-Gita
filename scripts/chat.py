@@ -7,43 +7,44 @@ from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
 import os
 import google.generativeai as genai
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 load_dotenv()
 
 api_key = os.getenv("API_KEY")
-retrieval_vector_store = "../data/vectorstore2"
-helperPath = "../data/helperData2"  # Path to metadata
+retrieval_vector_store = "../data/vectorstore4"
+helperPath = "../data/helperData4"  # Path to metadata
 
 # Custom Prompt Template
 custom_prompt_template = """
-You are a wise and enlightened teacher of the Bhagavad Gita. As a spiritual guide, explain in detail the profound teachings on performing one's duties without attachment, drawing from the sacred wisdom of the Bhagavad Gita. Use the following translations of five shlokas to provide a deep, reflective, and insightful answer to the user's question. If the question is not related tobhagwad gita then just say that don't ask me irrelevant questions.
+You are a wise and enlightened teacher of both the Bhagavad Gita and the Patanjali Yoga Sutras. As a spiritual guide, explain in detail the profound teachings drawn from these sacred texts. Use the following explanations of shlokas and sutras to provide a deep, reflective, and insightful answer to the user's question.
 
 Context:
 {context}
 
 Metadata:
-- Verse IDs: {metadata_ids}
+- Verse/Sutra IDs: {metadata_ids}
 - Speakers: {metadata_speakers}
 
-Shlokas:
-- Shlokas: {shlokas}
+Texts:
+- Shlokas/Sutras: {shlokas}
 
 Question:
 {question}
 
 Guidelines:
 - Respond as a spiritual teacher imparting timeless wisdom to a seeker.
-- Reference the teachings of Bhagwan Krishna and Arjuna in a manner that feels like a direct conversation.
-- Frame the response as a journey of understanding, offering deep philosophical insights into performing duties without attachment.
-- Provide explanations that are rich in spiritual and ethical wisdom, connecting the verses to the essence of life.
-- Emphasize the concepts of equanimity, detachment, and the liberation that comes from performing duties selflessly.
+- Reference the teachings of Bhagwan Krishna, Arjuna, and Patanjali in a manner that feels like a direct and harmonious conversation.
+- Frame the response as a journey of understanding, integrating the core principles of both texts. Highlight how the Bhagavad Gita emphasizes duty, devotion, and detachment, while the Patanjali Yoga Sutras emphasize self-discipline, mental control, and spiritual progress through yoga.
+- Provide explanations that are rich in spiritual, ethical, and practical wisdom, connecting the teachings to the essence of life.
 - Address the seeker with a compassionate tone, as if guiding them on a path to spiritual enlightenment.
-- Do not introduce outside concepts or beliefs, but stay true to the teachings within the Bhagavad Gita.
-- If the question is unclear or cannot be answered with the given verses, respond with: "I cannot provide an answer based on the given verses, as the teachings of Bhagavad Gita require a deeper understanding of one's nature and path."
-- Always relate the teachings back to the core philosophy of the Bhagavad Gita and its call for inner peace, righteousness, and the fulfillment of one's purpose in life.
+- Stay true to the teachings within the Bhagavad Gita and the Patanjali Yoga Sutras. Do not introduce outside concepts or beliefs.
+- If the question is unclear or cannot be answered with the given texts, respond with: "I cannot provide an answer based on the given verses or sutras, as the teachings require a deeper understanding of one's nature and path."
+- Always relate the teachings back to the core philosophies of the Bhagavad Gita and the Patanjali Yoga Sutras, emphasizing inner peace, righteousness, spiritual discipline, and the fulfillment of one's purpose in life.
 
 Condensed Answer:
 """
+
 
 
 # Step 1: Define Custom Prompt
@@ -53,6 +54,23 @@ def SetCustomPrompt():
         input_variables=["context", "metadata_ids", "metadata_speakers", "question", 'shlokas']
     )
 
+def LoadFineTunedLlamaModel():
+    model_name = "RakshitAi/Llama-2-7b-chat-finetune"
+    
+    # Load the tokenizer
+    print("Loading tokenizer...")
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    
+    # Load the model
+    print("Loading model...")
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name, 
+        torch_dtype="auto",  # Automatically select the best precision
+        device_map='cpu'    # Distribute the model across available GPUs
+    )
+    
+    print("Model loaded successfully!")
+    return model, tokenizer
 
 # Step 2: Load Language Model
 def LoadLLM():
@@ -91,8 +109,8 @@ def RetrieveSimilarQuestions(query, vector_store, threshold=0.6):
         scores.append(similarity[0][0])
         if similarity[0][0] >= threshold:
             filteredDocs.append(doc)
-    print(docs)
-    print(filteredDocs)
+    # print(docs)
+    # print(filteredDocs)
     print(scores)
     return filteredDocs
 
@@ -100,6 +118,7 @@ def RetrieveSimilarQuestions(query, vector_store, threshold=0.6):
 # Step 5: Generate Answer
 def GetAnswer(query):
     llm = LoadLLM()
+    # llm, tokenizer = LoadFineTunedLlamaModel()
     vector_store = LoadVectorStore()
 
     # Retrieve similar questions
@@ -115,13 +134,13 @@ def GetAnswer(query):
     context = "\n".join([doc.page_content for doc in documents])
     shlokas = [doc.metadata.get('shloka', 'N/A') for doc in documents]
     flat_metadata_translations = [item for sublist in metadata_translations for item in sublist]
-
-    print(flat_metadata_translations)
+    metadata_purport = [doc.metadata.get('purport', 'N/A') for doc in documents]
+    flat_metadata_purport = [item for sublist in metadata_purport for item in sublist]
 
     # Use prompt template to generate response
     custom_prompt = SetCustomPrompt()
     final_prompt = custom_prompt.format(
-        context=",".join(flat_metadata_translations),
+        context=",".join(flat_metadata_purport),
         metadata_ids=", ".join(metadata_ids),
         metadata_speakers=", ".join(metadata_speakers),
         shlokas=", ".join(shlokas),
@@ -138,11 +157,25 @@ def GetAnswer(query):
         "context": context,
         "shlokas": shlokas
     }
+    # inputs = tokenizer(final_prompt, return_tensors="pt")
+
+    # # Generate the response
+    # outputs = llm.generate(**inputs, max_length=1024, max_new_tokens=512, temperature=0.7, top_p=0.95)
+    # response_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+    # # Return the response and relevant metadata
+    # return {
+    #     "answer": response_text,
+    #     "metadata_ids": metadata_ids,
+    #     "metadata_speakers": metadata_speakers,
+    #     "context": context,
+    #     "shlokas": shlokas
+    # }
 
 
 # Example Query
 if __name__ == "__main__":
-    query = "What is the weather today?"
+    query = "What did sanjay predict about the war?"
     response = GetAnswer(query)
     if isinstance(response, str):
         print(response)

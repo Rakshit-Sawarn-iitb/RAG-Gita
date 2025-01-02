@@ -1,17 +1,17 @@
 import faiss
 import numpy as np
-from chunking import chunking_gita
+from chunking import chunking
 from sentence_transformers import SentenceTransformer
 from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.schema import Document
 
 chunking_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
-vector_path = '../data/vectorstore2'
-helperPath = '../data/helperData2'
+vector_path = '../data/vectorstore4'
+helperPath = '../data/helperData4'
 # Step 1: Chunking the Data
 def CreateVectorDB():
-    chunks = chunking_gita()
+    chunks = chunking()
     print("Done with chunking")
 
     # Step 2: Combine Questions for Each Verse
@@ -28,7 +28,8 @@ def CreateVectorDB():
             'shloka': chunk['content']['sanskrit'],
             'chapter': chunk['id'].split('-')[1],
             'verse': chunk['id'].split('-')[-1],
-            'translations': chunk['content']['translations']
+            'translations': chunk['content']['translations'],
+            'purport': chunk['content']['purport']
         })
 
     print(f"Total verses to embed: {len(texts_to_embed)}")
