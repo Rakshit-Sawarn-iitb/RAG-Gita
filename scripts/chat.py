@@ -1,5 +1,3 @@
-import numpy as np
-from langchain.chains import RetrievalQA
 from langchain import PromptTemplate
 from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
@@ -7,7 +5,11 @@ from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
 import os
 import google.generativeai as genai
-from transformers import AutoModelForCausalLM, AutoTokenizer
+import re
+from reform import rewrite_query, generate_step_back_query, decompose_query
+import pickle
+import networkx as nx
+import numpy as np
 
 load_dotenv()
 
@@ -54,24 +56,6 @@ def SetCustomPrompt():
         input_variables=["context", "metadata_ids", "metadata_speakers", "question", 'shlokas']
     )
 
-def LoadFineTunedLlamaModel():
-    model_name = "RakshitAi/Llama-2-7b-chat-finetune"
-    
-    # Load the tokenizer
-    print("Loading tokenizer...")
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    
-    # Load the model
-    print("Loading model...")
-    model = AutoModelForCausalLM.from_pretrained(
-        model_name, 
-        torch_dtype="auto",  # Automatically select the best precision
-        device_map='cpu'    # Distribute the model across available GPUs
-    )
-    
-    print("Model loaded successfully!")
-    return model, tokenizer
-
 # Step 2: Load Language Model
 def LoadLLM():
     genai.configure(api_key=api_key)
@@ -91,49 +75,74 @@ def LoadVectorStore():
     )
     return vector_store
 
+def load_graph(path="../data/graphs/knowledge_graph.pkl"):
+    with open(path, "rb") as f:
+        graph = pickle.load(f)
+    print("Knowledge graph loaded.")
+    return graph
 
 # Step 4: Embed Query and Retrieve Similar Questions
-def RetrieveSimilarQuestions(query, vector_store, threshold=0.6):
-    # Embed the user query
+def RetrieveSimilarQuestions(query, vector_store, threshold=0.5, cutoff=2):
+    # Step 1: Embed the user query
     embedding_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
     query_embedding = embedding_model.encode([query])
-    
 
-    # Retrieve similar questions
-    docs = vector_store.similarity_search_by_vector(query_embedding[0], k=5)
-    filteredDocs = []
-    scores = []
-    for doc in docs:
+    # Step 2: Perform MMR search
+    docs = vector_store.max_marginal_relevance_search(query, k=30, fetch_k=50, lambda_mult=0.9)
+
+    # Step 3: Filter documents by keyword matches
+    keywords = set(re.findall(r'\b\w+\b', query.lower()))  # Extract keywords from the query
+    keyword_filtered_docs = [
+        doc for doc in docs
+        if keywords & set(re.findall(r'\b\w+\b', doc.page_content.lower()))
+    ]
+
+    # If no keyword matches, fall back to original MMR results
+    if not keyword_filtered_docs:
+        keyword_filtered_docs = docs
+
+    # Step 4: Further filter documents by similarity score
+    final_docs = []
+    for doc in keyword_filtered_docs:
         rel = embedding_model.encode([doc.page_content])
         similarity = np.dot(query_embedding, rel.T) / (np.linalg.norm(query_embedding) * np.linalg.norm(rel))
-        scores.append(similarity[0][0])
-        if similarity[0][0] >= threshold:
-            filteredDocs.append(doc)
-    # print(docs)
-    # print(filteredDocs)
-    print(scores)
-    return filteredDocs
+        if similarity >= threshold:
+            final_docs.append(doc)
 
+    # Step 5: Use the graph to enhance retrieval
+    graph = load_graph()
+    related_ids = set()
+    for doc in final_docs:
+        node_id = doc.metadata['id']
+        if node_id in graph:
+            # Get related nodes (direct and indirect relationships up to cutoff depth)
+            related_ids.update(nx.single_source_shortest_path_length(graph, node_id, cutoff=cutoff).keys())
+
+    # Retrieve graph-enhanced documents
+    enhanced_docs = [
+        doc for doc in final_docs if doc.metadata['id'] in related_ids
+    ]
+
+    return enhanced_docs
 
 # Step 5: Generate Answer
 def GetAnswer(query):
-    llm = LoadLLM()
-    # llm, tokenizer = LoadFineTunedLlamaModel()
     vector_store = LoadVectorStore()
+    llm = LoadLLM()
+    rewritten_query = rewrite_query(query, llm)
+    print(f"Rewritten query: {rewritten_query}")
 
     # Retrieve similar questions
-    documents = RetrieveSimilarQuestions(query, vector_store)
+    documents = RetrieveSimilarQuestions(rewritten_query, vector_store)
     if not documents:
         return "No relevant context was found in the Bhagavad Gita to answer this question."
 
     # Extract metadata
-    metadata_translations = [doc.metadata.get('translations', 'N/A') for doc in documents]
     metadata_ids = [doc.metadata.get('id', 'N/A') for doc in documents]
     metadata_speakers = [doc.metadata.get('speaker', 'Unknown') for doc in documents]
     metadata_speakers = [", ".join(speaker) if isinstance(speaker, list) else speaker for speaker in metadata_speakers]
     context = "\n".join([doc.page_content for doc in documents])
     shlokas = [doc.metadata.get('shloka', 'N/A') for doc in documents]
-    flat_metadata_translations = [item for sublist in metadata_translations for item in sublist]
     metadata_purport = [doc.metadata.get('purport', 'N/A') for doc in documents]
     flat_metadata_purport = [item for sublist in metadata_purport for item in sublist]
 
@@ -144,7 +153,7 @@ def GetAnswer(query):
         metadata_ids=", ".join(metadata_ids),
         metadata_speakers=", ".join(metadata_speakers),
         shlokas=", ".join(shlokas),
-        question=query
+        question=rewritten_query
     )
 
     # Generate final answer using the LLM
@@ -157,25 +166,10 @@ def GetAnswer(query):
         "context": context,
         "shlokas": shlokas
     }
-    # inputs = tokenizer(final_prompt, return_tensors="pt")
-
-    # # Generate the response
-    # outputs = llm.generate(**inputs, max_length=1024, max_new_tokens=512, temperature=0.7, top_p=0.95)
-    # response_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-    # # Return the response and relevant metadata
-    # return {
-    #     "answer": response_text,
-    #     "metadata_ids": metadata_ids,
-    #     "metadata_speakers": metadata_speakers,
-    #     "context": context,
-    #     "shlokas": shlokas
-    # }
-
 
 # Example Query
 if __name__ == "__main__":
-    query = "What did sanjay predict about the war?"
+    query = "Explain the meaning of Bhagavad Gita Verse 2.47."
     response = GetAnswer(query)
     if isinstance(response, str):
         print(response)
