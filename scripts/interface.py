@@ -31,6 +31,6 @@ if st.button("Get Answer"):
 st.markdown(
     """
     ---
-    Developed by Rakshit. Powered by Streamlit and RAG.
+    Developed by Rakshit and Ananya. Powered by Streamlit.
     """
 )
