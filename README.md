@@ -42,11 +42,15 @@ SAMAY is an advanced Retrieval-Augmented Generation (RAG) system designed to del
 
 ## Running Instructions
 
+### Make sure you have Ollama installed on your PC
+Pull the LLama3.2 model by `ollama pull llama3.2`
+
 1. Create a virtual environment
 2. Activate your virtual environment
 3. Install requirements using
-   (`pip install -r requirements.txt`)
-4. Go to scripts folder
-5. (`streamlit run interface.py`)
+   `pip install -r requirements.txt`
+### You are done with the setup
+
+Now, Go to scripts folder and run this in your terminal `streamlit run interface.py`
 
 ### And use SAMAY
