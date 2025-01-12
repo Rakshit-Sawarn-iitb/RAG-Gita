@@ -1,7 +1,8 @@
-# RAG-Gita: An Agentic Retrieval-Augmented Generation System for the Bhagavad Gita
+# Leveraging Retrieval-Augmented Generation for the Study and Interpretation of Religious Texts
+# SAMAY - Spiritual Assistance and Meditation Aid for You
 
 ## Overview
-RAG-Gita is an advanced Retrieval-Augmented Generation (RAG) system designed to deliver precise, context-rich answers to user queries using the timeless wisdom of the Bhagavad Gita. The system integrates vector search, graph-enhanced relationships, and large language models (LLMs) to provide insightful responses, bridging ancient knowledge with modern AI.
+SAMAY is an advanced Retrieval-Augmented Generation (RAG) system designed to deliver precise, context-rich answers to user queries using the timeless wisdom of the Bhagavad Gita and the Patanjali Yoga Sutras. The system integrates vector search, BM25 Scores, fusion retrieval methods, and large language models (LLMs) to provide insightful responses, bridging ancient knowledge with modern AI.
 
 ---
 
@@ -16,9 +17,8 @@ RAG-Gita is an advanced Retrieval-Augmented Generation (RAG) system designed to 
 - Rewrites user queries to align with the text structure of the Bhagavad Gita, reducing hallucinations and improving relevance.
 - Uses LLMs to generate step-back and decomposed queries for ambiguous or compound user inputs.
 
-### 3. **Fine-Tuned LLM for Summarization**
-- Fine-tuned Llama2 model on a custom dataset of Bhagavad Gita verses, purports, and explanations for domain-specific understanding.
-- Summarizes retrieved documents into concise, context-aware answers while maintaining fidelity to the Gita's teachings.
+### 3. **LLM for Summarization**
+- Llama3.2 model summarizes retrieved documents into concise, context-aware answers while maintaining fidelity to the Gita's teachings.
 
 ### 4. **Custom Prompting Framework**
 - Integrates a spiritual tone in responses with guidelines to reflect the Bhagavad Gita's philosophical themes of duty, devotion, and detachment.
@@ -36,12 +36,7 @@ RAG-Gita is an advanced Retrieval-Augmented Generation (RAG) system designed to 
    - FAISS index for dense retrieval of verses and explanations.
    - Metadata stored for verse identification and contextual relevance.
 
-3. **Knowledge Graph**
-   - NetworkX-based graph to model relationships between verses:
-     - **Sequential relationships**: Links verses within the same chapter.
-     - **Thematic relationships**: Links verses with overlapping purports or translations.
-
-4. **LLM Integration**
-   - Retrieval-augmented generation pipeline using Gemini or Llama2 models.
+3. **LLM Integration**
+   - Retrieval-augmented generation pipeline using Llama3.
    - Context-aware answer generation through custom prompt templates.
 
