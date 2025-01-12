@@ -42,6 +42,8 @@ SAMAY is an advanced Retrieval-Augmented Generation (RAG) system designed to del
 
 ## Running Instructions
 
+Clone the repo by `git clone https://github.com/Rakshit-Sawarn-iitb/RAG-Gita.git`
+
 ### Make sure you have Ollama installed on your PC
 Pull the LLama3.2 model by `ollama pull llama3.2`
 
