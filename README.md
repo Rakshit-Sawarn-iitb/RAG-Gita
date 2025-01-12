@@ -45,8 +45,8 @@ SAMAY is an advanced Retrieval-Augmented Generation (RAG) system designed to del
 1. Create a virtual environment
 2. Activate your virtual environment
 3. Install requirements using
-   pip install -r requirements.txt
+   (`pip install -r requirements.txt`)
 4. Go to scripts folder
-5. streamlit run interface.py
+5. (`streamlit run interface.py`)
 
 ### And use SAMAY
