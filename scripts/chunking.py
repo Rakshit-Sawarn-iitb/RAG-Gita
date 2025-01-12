@@ -1,18 +1,23 @@
 import pandas as pd
-data = pd.read_csv('../data/processed/gita_processed2.csv')
 
-def chunking_gita():
+# Read the processed data
+data = pd.read_csv('../data/processed/final.csv')
+
+#Chunking the whole dataset verse-wise
+def chunking(): 
     chunks = []
-    for _, row in data.iterrows():
-        chunks.append({
-    "id": f"chapter-{row['Chapter']}-verse-{row['Verse']}",
-    "content": {
-        "sanskrit": row['Sanskrit '],
-        "translations": {
-        "Swami Adidevananda": row['Swami Adidevananda']
-        },
-        "speaker": row['Speaker']
-    }
-    }
-        )
+    for i in range(len(data)):   
+        row = data.iloc[i]
+        cluster_content = {
+            "chapter": row['chapter'],
+            "verse": row['verse'],
+            "source": row['Source'],
+            "sanskrit": row['sanskrit'],
+            "translations": row['translation'],
+            "speakers": row['speaker'],
+            "questions": row['question'],
+            "purports": row['purport']
+        }
+        chunks.append(cluster_content)
+    
     return chunks
