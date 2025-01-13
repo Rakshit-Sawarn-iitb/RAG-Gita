@@ -8,10 +8,10 @@ SAMAY is an advanced Retrieval-Augmented Generation (RAG) system designed to del
 
 ## Features
 
-### 1. **Semantic Retrieval Pipeline**
-- **FAISS Vector Store**: Implements efficient semantic search with FAISS for dense embeddings of shlokas and their contexts.
-- **Keyword Filtering**: Enhances retrieval precision by filtering results based on keyword matches.
-- **Graph-Augmented Search**: Utilizes a knowledge graph built with NetworkX to model relationships between shlokas, enabling thematic and sequential retrieval.
+### 1. **Retrieval Pipeline**
+- **FAISS Vector Store**: Provides similarity scores for the documents.
+- **BM25 Retriever**: Provides BM25 scores for the documents.
+- **Fusion Retrieval**: Calculates weighted score and then filter out the relevant documents accordingly.
 
 ### 2. **Query Restructuring**
 - Rewrites user queries to align with the text structure of the Bhagavad Gita, reducing hallucinations and improving relevance.
