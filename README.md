@@ -40,6 +40,9 @@ SAMAY is an advanced Retrieval-Augmented Generation (RAG) system designed to del
    - Retrieval-augmented generation pipeline using Llama3.
    - Context-aware answer generation through custom prompt templates.
 
+## For detailed documentation
+Visit this Notion page https://abiding-museum-395.notion.site/Leveraging-Retrieval-Augmented-Generation-for-the-Study-and-Interpretation-of-Religious-Texts-179e5c02a97380198b3adcfc256b02bb
+
 ## Running Instructions
 
 Clone the repo by `git clone https://github.com/Rakshit-Sawarn-iitb/RAG-Gita.git`
